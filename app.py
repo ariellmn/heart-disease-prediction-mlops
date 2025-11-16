@@ -11,9 +11,20 @@ st.write("Masukkan beberapa data sederhana untuk memprediksi risiko penyakit jan
 st.subheader("Input Data Pasien")
 
 # Input User
-age = st.number_input("Umur Pasien", min_value=1, max_value=120, value=40)
+age = st.number_input(
+    "Umur Pasien",
+    min_value=1,
+    max_value=120,
+    value=40,
+    help="Semakin muda biasanya semakin rendah risikonya (<40 = rendah, 40–60 = sedang, >60 = tinggi)"
+)
 
-sex = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
+sex = st.selectbox(
+    "Jenis Kelamin",
+    ["Laki-laki", "Perempuan"],
+    help="Pada dataset, laki-laki cenderung memiliki risiko lebih tinggi."
+)
+
 sex_map = {"Laki-laki": "M", "Perempuan": "F"}
 
 cp = st.selectbox(
@@ -33,9 +44,21 @@ cp_map = {
     "Asymptomatic (tanpa gejala)": "ASY"
 }
 
-chol = st.number_input("Kadar Kolesterol (mg/dl)", min_value=50, max_value=600, value=200)
+chol = st.number_input(
+    "Kadar Kolesterol (mg/dl)",
+    min_value=80,
+    max_value=600,
+    value=180,
+    help="• <200 = rendah\n• 200–240 = sedang\n• >240 = tinggi"
+)
 
-maxhr = st.number_input("Detak Jantung Maksimum (MaxHR)", min_value=60, max_value=220, value=150)
+maxhr = st.number_input(
+    "Detak Jantung Maksimum (MaxHR)",
+    min_value=60,
+    max_value=220,
+    value=160,
+    help="Semakin tinggi MaxHR → semakin rendah risiko (≥150 bagus di dataset)"
+)
 
 # Prediction
 if st.button("Prediksi Risiko"):
@@ -60,3 +83,4 @@ if st.button("Prediksi Risiko"):
         st.error(f"⚠️ Risiko TINGGI terkena penyakit jantung. (Probabilitas: {prob:.2f})")
     else:
         st.success(f"✅ Risiko RENDAH terkena penyakit jantung. (Probabilitas: {prob:.2f})")
+
