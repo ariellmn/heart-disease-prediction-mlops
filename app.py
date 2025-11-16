@@ -1,54 +1,56 @@
 import streamlit as st
-import joblib
-import pandas as pd
+import numpy as np
+import pickle
 
-# Load Model
-@st.cache_resource
-def load_model():
-    return joblib.load("model.joblib")
+# Load model dan encoder
+data = pickle.load(open("heart_model.pkl", "rb"))
+model = data["model"]
+le_sex = data["le_sex"]
+le_cp = data["le_cp"]
 
-model = load_model()
+st.title("Heart Disease Prediction ❤️‍🩹")
+st.write("Aplikasi sederhana untuk memprediksi risiko penyakit jantung.")
 
-# UI Aplikasi
+st.subheader("Masukkan Data Pasien")
 
-st.title("Heart Disease Prediction App")
-st.write("Masukkan data pasien untuk memprediksi risiko penyakit jantung.")
+# Input user
+age = st.number_input("Umur Pasien", min_value=1, max_value=120, value=40)
 
-# Input User
-Age = st.number_input("Age", min_value=1, max_value=120, value=40)
-Sex = st.selectbox("Sex", ["M", "F"])
-ChestPainType = st.selectbox("Chest Pain Type", ["ATA", "NAP", "ASY", "TA"])
-RestingBP = st.number_input("Resting Blood Pressure", min_value=0, max_value=250, value=120)
-Cholesterol = st.number_input("Cholesterol", min_value=0, max_value=600, value=200)
-FastingBS = st.selectbox("FastingBS ( > 120 mg/dl )", [0, 1])
-RestingECG = st.selectbox("Resting ECG", ["Normal", "ST", "LVH"])
-MaxHR = st.number_input("Max Heart Rate", min_value=60, max_value=220, value=150)
-ExerciseAngina = st.selectbox("Exercise Angina", ["Y", "N"])
-Oldpeak = st.number_input("Oldpeak", min_value=-5.0, max_value=10.0, value=1.0, step=0.1)
-ST_Slope = st.selectbox("ST Slope", ["Up", "Flat", "Down"])
+sex = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
+sex_map = {"Laki-laki": "M", "Perempuan": "F"}
+sex_encoded = le_sex.transform([sex_map[sex]])[0]
 
-# Predict Button
-if st.button("Prediksi"):
-    # Format input sesuai kolom training model
-    input_data = pd.DataFrame([{
-        "Age": Age,
-        "Sex": Sex,
-        "ChestPainType": ChestPainType,
-        "RestingBP": RestingBP,
-        "Cholesterol": Cholesterol,
-        "FastingBS": FastingBS,
-        "RestingECG": RestingECG,
-        "MaxHR": MaxHR,
-        "ExerciseAngina": ExerciseAngina,
-        "Oldpeak": Oldpeak,
-        "ST_Slope": ST_Slope
-    }])
+cp = st.selectbox(
+    "Jenis Nyeri Dada",
+    [
+        "Typical Angina (nyeri khas karena penyempitan arteri)",
+        "Atypical Angina (nyeri dada tetapi tidak khas)",
+        "Non-Anginal Pain (nyeri bukan dari jantung)",
+        "Asymptomatic (tanpa gejala, paling berbahaya)"
+    ]
+)
 
-    prediction = model.predict(input_data)[0]
-    probability = model.predict_proba(input_data)[0][1]
+cp_map = {
+    "Typical Angina (nyeri khas karena penyempitan arteri)": "TA",
+    "Atypical Angina (nyeri dada tetapi tidak khas)": "ATA",
+    "Non-Anginal Pain (nyeri bukan dari jantung)": "NAP",
+    "Asymptomatic (tanpa gejala, paling berbahaya)": "ASY"
+}
 
-    # Output hasil
-    if prediction == 1:
-        st.error(f"⚠️ Pasien kemungkinan **mengidap penyakit jantung**.\nProbabilitas: **{probability:.2f}**")
+cp_encoded = le_cp.transform([cp_map[cp]])[0]
+
+chol = st.number_input("Kadar Kolesterol (mg/dl)", min_value=50, max_value=600, value=200)
+
+maxhr = st.number_input("Detak Jantung Maksimum", min_value=60, max_value=220, value=150)
+
+# Prediksi
+if st.button("Prediksi Risiko"):
+    input_data = np.array([[age, sex_encoded, cp_encoded, chol, maxhr]])
+
+    pred = model.predict(input_data)[0]
+    prob = model.predict_proba(input_data)[0][1]
+
+    if pred == 1:
+        st.error(f"⚠️ Kemungkinan **TINGGI** penyakit jantung. (Probabilitas: {prob:.2f})")
     else:
-        st.success(f"✅ Pasien kemungkinan **TIDAK** mengidap penyakit jantung.\nProbabilitas: **{probability:.2f}**")
+        st.success(f"✅ Kemungkinan **RENDAH** penyakit jantung. (Probabilitas: {prob:.2f})")
