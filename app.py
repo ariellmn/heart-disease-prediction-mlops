@@ -5,7 +5,6 @@ import joblib
 # Load model dan encoder
 
 model = joblib.load("model.joblib")
-model = data["model"]
 le_sex = data["le_sex"]
 le_cp = data["le_cp"]
 
@@ -55,4 +54,5 @@ if st.button("Prediksi Risiko"):
         st.error(f"⚠️ Kemungkinan **TINGGI** penyakit jantung. (Probabilitas: {prob:.2f})")
     else:
         st.success(f"✅ Kemungkinan **RENDAH** penyakit jantung. (Probabilitas: {prob:.2f})")
+
 
